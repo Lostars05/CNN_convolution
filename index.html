@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>CNN | 기초 개념</title>
+    <style>
+        :root{
+            --ink:#182338;
+            --muted:#65728a;
+            --line:#e5eaf2;
+            --bg:#f5f7fb;
+            --blue:#4169e1;
+            --cyan:#dff4f5;
+            --purple:#eee9ff;
+            --white:#fff
+        }
+        *{
+            box-sizing:border-box
+        }
+        body{
+            margin:0;
+            background:var(--bg);
+            color:var(--ink);
+            font:16px/1.7 Pretendard, "Noto Sans KR", system-ui, sans-serif
+        }
+        header{
+            background:#111d35;
+            color:white;
+            padding:22px max(6vw,24px);
+            display:flex;justify-content:space-between;
+            align-items:center;
+            gap:20px;
+            position:sticky;
+            top:0;
+            z-index:5
+        }
+        .brand{
+            font-weight:800;
+            letter-spacing:.04em
+        }
+        nav{
+            display:flex;
+            gap:10px;
+            flex-wrap:wrap
+        }
+        nav a{
+            color:#dce6ff;
+            text-decoration:none;
+            padding:7px 12px;
+            border-radius:8px;
+            font-size:14px
+        }
+        nav a.active,nav a:hover{
+            background:#34476d;
+            color:white
+        }
+        main{
+            max-width:1060px;
+            margin:44px auto;
+            padding:0 22px
+        }
+        .hero{
+            padding:42px;
+            border-radius:24px;
+            background:linear-gradient(120deg,#172541,#344f80);
+            color:white;
+            margin-bottom:28px
+        }
+        .eyebrow{
+            color:#a9c5ff;
+            font-size:13px;
+            font-weight:700;
+            letter-spacing:.15em
+        }
+        .hero h1{
+            font-size:clamp(30px,5vw,48px);
+            line-height:1.2;
+            margin:12px 0
+        }
+        .hero p{
+            color:#d5e0f4;
+            max-width:680px
+        }
+        section{
+            background:white;
+            border:1px solid var(--line);
+            border-radius:18px;
+            padding:28px;
+            margin:20px 0;
+            box-shadow:0 8px 26px #26365308
+        }
+        h2{
+            font-size:24px;
+            margin:0 0 16px
+        }
+        h3{
+            font-size:17px;
+            margin:0 0 8px
+        }
+        .lead{
+            color:var(--muted);
+            margin-top:-8px
+        }
+        .grid{
+            display:grid;
+            grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+            gap:14px
+        }
+        .tile{
+            background:#f7f9fd;
+            border:1px solid var(--line);
+            padding:18px;
+            border-radius:13px
+        }
+        .tag{
+            display:inline-block;
+            font-size:12px;
+            color:#3153bd;
+            background:#eaf0ff;
+            padding:3px 9px;
+            border-radius:20px;
+            font-weight:700
+        }
+        .formula{
+            background:#101d34;
+            color:#e7efff;
+            padding:18px;
+            border-radius:12px;
+            font:600 17px/1.8 ui-monospace,monospace;
+            overflow:auto
+        }
+        .table-wrap{
+            overflow-x:auto
+        }
+        table{
+            width:100%;
+            border-collapse:collapse;
+            min-width:620px
+        }
+        th,td{
+            text-align:left;
+            padding:13px;
+            border-bottom:1px solid var(--line);
+            vertical-align:top
+        }
+        th{
+            background:#f5f7fb;
+            font-size:14px
+        }
+        td:first-child{
+            font-weight:700;
+            white-space:nowrap
+        }
+        .note{
+            border-left:4px solid var(--blue);
+            background:#f2f6ff;padding:14px 17px;
+            border-radius:0 10px 10px 0;
+            margin-top:16px
+        }
+        .warning{
+            border-left-color:#e49a36;
+            background:#fff8ed
+        }
+        .flow{
+            display:flex;
+            gap:8px;
+            align-items:center;
+            flex-wrap:wrap
+        }
+        .flow span{
+            background:#edf2ff;
+            border-radius:9px;
+            padding:10px 13px;
+            font-weight:700
+        }
+        .flow b{
+            color:#8995aa
+        }
+        footer{
+            text-align:center;
+            color:var(--muted);
+            padding:36px;
+            font-size:13px
+        }
+        @media(max-width:600px){
+            header{
+                align-items:flex-start;
+                flex-direction:column
+            }
+            .hero{
+                padding:28px
+            }
+            section{
+                padding:20px
+        }}
+    </style>
+</head>
+
+
+<body>
+    <header>
+        <div class="brand">◈ CNN</div>
+        <nav>
+            <a class="active" href="index.html">01 · 기초 개념</a>
+            <a href="convolution.html">02 · 연산 시각화 →</a>
+        </nav>
+    </header>
+
+    <main>
+        <div class="hero">
+            <div class="eyebrow">2026 기계학습 과제 - 2024810028 김채영</div>
+            <h1>합성곱 신경망</h1>
+            <p>핵심 개념 및 주요 설정값 정리</p>
+        </div>
+        <section>
+            <span class="tag">01 · OVERVIEW</span>
+            <h2 style="margin-top:10px">CNN이란?</h2>
+            <p>CNN(Convolutional Neural Network)은 이미지의 채널·높이·너비 구조를 유지하면서 국소 영역의 패턴을 학습하는 신경망이다. 작은 필터를 입력 위에서 이동시키며 특징을 추출하고, 필터의 가중치를 여러 위치에서 공유한다.</p>
+            <div class="grid">
+                <div class="tile">
+                    <h3>국소 연결</h3>
+                    <p>입력 전체가 아니라 작은 영역을 대상으로 연산해 주변 픽셀의 관계를 학습한다.</p>
+                </div>
+                <div class="tile">
+                    <h3>가중치 공유</h3>
+                    <p>같은 필터를 여러 위치에 적용하므로 위치마다 별도의 가중치를 둘 필요가 없다.</p>
+                </div>
+                <div class="tile">
+                    <h3>특징 학습</h3>
+                    <p>초기 계층은 간단한 국소 패턴을, 깊은 계층은 이를 조합한 표현을 학습할 수 있다.</p>
+                </div>
+            </div>
+            <div class="note">완전연결 계층은 입력을 평탄화해 공간적 이웃 관계를 구조로 활용하지 않지만, CNN은 국소 연결과 가중치 공유를 이용한다.</div>
+        </section>
+
+        <section>
+            <span class="tag">02 · TERMINOLOGY</span>
+            <h2 style="margin-top:10px">주요 용어</h2>
+            <div class="table-wrap">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>용어</th>
+                            <th>정의</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>입력(Input)</td>
+                            <td>모델에 전달되는 이미지 데이터. 일반적으로 채널(C), 높이(H), 너비(W)의 구조를 가진다.</td>
+                        </tr>
+                        <tr>
+                            <td>커널 / 필터(Kernel / Filter)</td>
+                            <td>입력의 작은 영역과 원소별 곱셈·합산을 수행하는 학습 가능한 가중치 묶음.</td>
+                        </tr>
+                        <tr>
+                            <td>특징 맵(Feature Map)</td>
+                            <td>필터가 각 위치에서 반응한 결과를 모아 만든 출력 맵.</td>
+                        </tr>
+                        <tr>
+                            <td>채널(Channel)</td>
+                            <td>입력 또는 출력 데이터의 깊이 차원. RGB 이미지라면 입력 채널은 3개다.</td>
+                        </tr>
+                        <tr>
+                            <td>편향(Bias)</td>
+                            <td>필터 연산 결과에 더하는 값. 일반적으로 출력 채널마다 하나씩 둔다.</td>
+                        </tr>
+                        <tr>
+                            <td>패딩(Padding)</td>
+                            <td>입력의 가장자리에 값을 추가하는 처리. 제로 패딩은 0으로 채운다.</td>
+                        </tr>
+                        <tr>
+                            <td>스트라이드(Stride)</td>
+                            <td>필터가 입력 위에서 한 번 이동할 때 이동하는 간격.</td>
+                        </tr>
+                        <tr>
+                            <td>풀링(Pooling)</td>
+                            <td>작은 영역을 대표값으로 요약해 특징 맵의 공간 크기를 줄이는 연산.</td>
+                        </tr>
+                        <tr>
+                            <td>배치(Batch)</td>
+                            <td>한 번의 학습 반복에서 함께 처리하는 입력 표본의 묶음.</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+        
+        <section>
+            <span class="tag">03 · HYPERPARAMETERS</span>
+            <h2 style="margin-top:10px">주요 하이퍼파라미터</h2>
+            <p class="lead">하이퍼파라미터는 학습 절차와 모델 크기를 정하는 값이며, 가중치처럼 역전파로 직접 갱신하는 값과 구분한다.</p>
+            <div class="table-wrap">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>항목</th>
+                            <th>의미</th>
+                            <th>변경했을 때 고려할 점</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>kernel_size</td>
+                            <td>필터의 높이와 너비</td>
+                            <td>큰 커널은 더 넓은 영역을 한 번에 본다.</td>
+                        </tr>
+                        <tr>
+                            <td>filters(Keras), out_channels(Pytorch)</td>
+                            <td>사용하는 필터의 개수</td>
+                            <td>필터 수만큼 출력 채널이 생성된다.</td>
+                        </tr>
+                        <tr>
+                            <td>strides</td>
+                            <td>필터의 이동 간격</td>
+                            <td>같은 입력과 필터라면 클수록 출력 공간 크기는 작아진다.</td>
+                        </tr>
+                        <tr>
+                            <td>padding</td>
+                            <td>입력 가장자리에 덧붙이는 크기</td>
+                            <td>출력 크기를 조정하고 가장자리 정보 사용을 돕는다.</td>
+                        </tr>
+                        <tr>
+                            <td>batch_size</td>
+                            <td>한 번에 처리하는 표본 수</td>
+                            <td>메모리 사용량과 기울기 추정의 변동에 영향을 준다.</td>
+                        </tr>
+                        <tr>
+                            <td>learning_rate</td>
+                            <td>매개변수 갱신 크기를 조절하는 값</td>
+                            <td>너무 크면 진동·발산, 너무 작으면 수렴이 느릴 수 있다.</td>
+                        </tr>
+                        <tr>
+                            <td>epochs</td>
+                            <td>전체 훈련 데이터를 한 번 학습한 단위</td>
+                            <td>너무 오래 학습하면 과적합 위험이 커질 수 있다.</td>
+                        </tr>
+                        <tr>
+                            <td>weight_decay</td>
+                            <td>정규화 강도(예: λ)</td>
+                            <td>너무 강하면 훈련 데이터도 충분히 학습하지 못할 수 있다.</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="note">
+                <b>출력 크기 공식</b>
+                <div class="formula" style="margin-top:10px">O = ⌊(I + 2P − F) / S⌋ + 1</div>
+                <p>높이와 너비에 각각 적용한다. I: 입력 크기, O: 출력 크기, F: 필터, P: 패딩, S: 스트라이드. (dilation=1인 경우)</p>
+            </div>
+        </section>
+        <section>
+            <span class="tag">04 · GENERALIZATION</span>
+            <h2 style="margin-top:10px">과적합과 정규화</h2>
+            <p>과적합(Overfitting)은 훈련 데이터에는 잘 맞지만 새로운 데이터에서는 성능이 떨어지는 상태다. 훈련 성능과 검증 성능의 차이를 함께 관찰해 진단한다.</p>
+            <div class="grid">
+                <div class="tile">
+                    <h3>과적합에 영향을 미치는 요인</h3>
+                    <p>과적합은 데이터 양 뿐 아니라 잡음, 데이터 누수, 학습 시간 등의 영향도 받는다.</p>
+                </div>
+                <div class="tile">
+                    <h3>대응 방향</h3>
+                    <p>모델 크기, 데이터, 학습 시간과 정규화 강도를 검증 성능을 기준으로 조정한다.</p>
+                </div>
+            </div>
+            <h3 style="margin-top:22px">대표적인 정규화 방법</h3>
+            <div class="table-wrap">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>방법</th>
+                            <th>핵심 원리</th>
+                            <th>유의점</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>L2 정규화 / 가중치 감소</td>
+                            <td>
+                                데이터 손실에 가중치 제곱합의 페널티를 더한다.<br>
+                                <code>L_total = L_data + (λ/2)Σw²</code>
+                            </td>
+                            <td>λ가 클수록 가중치를 강하게 제한한다. 너무 크면 과소적합이 생길 수 있다.</td>
+                        </tr>
+                        <tr>
+                            <td>Dropout</td>
+                            <td>훈련 중 확률 p로 일부 활성화값을 0으로 만든다.</td>
+                            <td>추론 시에는 마스킹과 추가 스케일 보정을 적용하지 않는다. Inverted Dropout은 살아남은 값을 1/(1-p)배 한다.</td>
+                        </tr>
+                        <tr>
+                            <td>Data Augmentation</td>
+                            <td>훈련 이미지에 변환을 적용해 데이터 다양성을 늘린다.</td>
+                            <td>레이블 의미가 유지되는 변환을 선택해야 한다.</td>
+                        </tr>
+                        <tr>
+                            <td>Batch Normalization</td>
+                            <td>미니배치 통계로 정규화한 뒤 학습 가능한 γ, β로 스케일과 이동을 조정한다.</td>
+                            <td>훈련과 추론에서 사용하는 통계가 다르므로 모드를 구분한다.</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="note warning">정규화는 무조건 강하게 적용하는 것이 목표가 아니다. 검증 성능을 확인하면서 과적합 완화와 과소적합 사이의 균형을 맞춘다.</div>
+        </section>
+        
+        <section>
+            <span class="tag">05 · PIPELINE</span>
+            <h2 style="margin-top:10px">CNN의 기본 흐름</h2>
+            <div class="flow">
+                <span>Input</span>
+                <b>→</b>
+                <span>Convolution</span>
+                <b>→</b>
+                <span>ReLU</span>
+                <b>→</b>
+                <span>Pooling</span>
+                <b>→</b>
+                <span>Flatten</span>
+                <b>→</b>
+                <span>Classifier</span>
+            </div>
+            <p class="lead" style="margin-top:18px">다음 페이지에서는 작은 숫자 행렬을 사용해 합성곱 계산을 직접 확인한다.</p>
+            <a href="convolution.html" style="display:inline-block; margin-top:8px; background:#4169e1; color:white; text-decoration:none; padding:11px 17px; border-radius:9px; font-weight:700">연산 시각화 →</a>
+        </section>
+    </main>
+    
+    <footer>COURSE NOTE · MACHINE LEARNING · CNN BASICS</footer>
+</body>
+
+</html>
